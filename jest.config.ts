@@ -5,6 +5,10 @@ const config: Config = {
   testEnvironment: 'jest-environment-jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  moduleDirectories: ['node_modules', 'src'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',

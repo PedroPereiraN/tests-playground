@@ -2,10 +2,15 @@ import { render, screen } from '@testing-library/react';
 import userEvent from "@testing-library/user-event";
 import { hashPassword } from "../../src/utils/hash-password";
 import { verifyPassword } from "../../src/utils/verify-password";
-import Auth from '../../src/app/pages/auth/page';
+import Auth from '../../src/app/auth/page';
+
+beforeEach(() => {
+  jest.restoreAllMocks();
+});
+
 
 describe("user authentication", () => {
-  it("get username and password", () => {
+  it("can get the username and password", () => {
     const mockSubmit = jest.fn();
 
     mockSubmit({
@@ -19,7 +24,7 @@ describe("user authentication", () => {
     });
   });
 
-  it("should generate a salt and hash the password", async () => {
+  it("can generate a salt and hash the password", async () => {
     const password = "password";
 
     const { hash, salt } = await hashPassword(password);
@@ -42,7 +47,7 @@ describe("user authentication", () => {
     expect(result1.hash).not.toBe(result2.hash);
   });
 
-  it("verify if the hash has the password", async () => {
+  it("should verify if the hash has the password", async () => {
     const password = "password";
 
     const { hash } = await hashPassword(password);
@@ -57,9 +62,47 @@ describe("user authentication", () => {
 
     render(<Auth />);
 
-    await user.click(screen.getByRole("button", { name: /auth/i }));
+    await user.click(screen.getByRole("button", { name: /Submit/i }));
 
     expect(screen.getByText("Username is required")).toBeInTheDocument();
     expect(screen.getByText("Password is required")).toBeInTheDocument();
   });
+
+  it("should show error when the password is wrong", async () => {
+    const user = userEvent.setup();
+
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: false,
+      status: 404,
+      json: () => Promise.resolve({error: "Wrong password"})
+    })) as jest.Mock
+
+    render(<Auth />)
+
+    await user.type(screen.getByLabelText(/username/i), "username");
+    await user.type(screen.getByLabelText(/password/i), "wrongPassword");
+
+    await user.click(screen.getByRole("button", { name: /Submit/i }));
+
+    expect(screen.getByText("Wrong password")).toBeInTheDocument()
+  })
+
+  it("should show error when the username is wrong", async () => {
+    const user = userEvent.setup();
+
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: false,
+      status: 404,
+      json: () => Promise.resolve({error: "User not found with username: wrongUsername"})
+    })) as jest.Mock
+
+    render(<Auth />)
+
+    await user.type(screen.getByLabelText(/username/i), "wrongUsername");
+    await user.type(screen.getByLabelText(/password/i), "wrongPassword");
+
+    await user.click(screen.getByRole("button", { name: /Submit/i }));
+
+    expect(screen.getByText("User not found with username: wrongUsername")).toBeInTheDocument()
+  })
 });
