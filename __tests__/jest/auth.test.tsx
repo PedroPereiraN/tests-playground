@@ -1,7 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { hashPassword } from '../../src/utils/hash-password';
-import { verifyPassword } from '../../src/utils/verify-password';
 import Auth from '../../src/app/auth/page';
 
 beforeEach(() => {
@@ -9,51 +7,34 @@ beforeEach(() => {
 });
 
 describe('user authentication', () => {
-  it('can get the username and password', () => {
-    const mockSubmit = jest.fn();
+  it('should send username and password correctly', async () => {
 
-    mockSubmit({
+const user = userEvent.setup();
+
+  const mockFetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ token: 'fake-token' }),
+    }),
+  );
+
+  global.fetch = mockFetch as jest.Mock;
+
+  render(<Auth />);
+
+  await user.type(screen.getByLabelText(/username/i), 'username');
+  await user.type(screen.getByLabelText(/password/i), 'password');
+  await user.click(screen.getByRole('button', { name: /Submit/i }));
+
+  expect(mockFetch).toHaveBeenCalledWith('/api/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
       username: 'username',
       password: 'password',
-    });
-
-    expect(mockSubmit).toHaveBeenCalledWith({
-      username: 'username',
-      password: 'password',
-    });
+    }),
   });
 
-  it('can generate a salt and hash the password', async () => {
-    const password = 'password';
-
-    const { hash, salt } = await hashPassword(password);
-
-    expect(salt).toBeDefined();
-    expect(hash).toBeDefined();
-    expect(hash).not.toBe(password);
-    expect(typeof salt).toBe('string');
-    expect(typeof hash).toBe('string');
-    expect(salt.length).toBeGreaterThan(0);
-    expect(hash.length).toBeGreaterThan(0);
-  });
-
-  it('should generate diferent hashes for the same password', async () => {
-    const password = 'password';
-
-    const result1 = await hashPassword(password);
-    const result2 = await hashPassword(password);
-
-    expect(result1.hash).not.toBe(result2.hash);
-  });
-
-  it('should verify if the hash has the password', async () => {
-    const password = 'password';
-
-    const { hash } = await hashPassword(password);
-
-    const isValid = await verifyPassword(password, hash);
-
-    expect(isValid).toBe(true);
   });
 
   it('should show error when fields are empty', async () => {

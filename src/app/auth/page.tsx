@@ -36,7 +36,7 @@ export default function Auth() {
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    const res = await fetch('/api/auth', {
+    await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
