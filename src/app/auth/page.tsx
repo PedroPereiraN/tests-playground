@@ -42,40 +42,44 @@ export default function Auth() {
         body: JSON.stringify(data),
       })
       .then( async (response) => {
+        const responseMessage = await response.json()
         if (!response.ok) {
-          const responseMessage = await response.json()
+
           setEvents((prev) => [
-            ...prev,
             {
               color: 'red',
               title: 'Error!',
               description: responseMessage.error,
-            }
+            },
+            ...prev,
+
           ])
 
           return
         }
 
         setEvents((prev) => [
-            ...prev,
-            {
+          {
               color: 'blue',
               title: 'Success!',
-              description: response.json().toString()
-            }
-          ])
+              description: `Token gerado com sucesso: "${responseMessage.token}"`
+            },
+
+            ...prev,
+                      ])
 
 
       reset()
 
       }).catch((error) => {
         setEvents((prev) => [
-            ...prev,
-            {
+          {
               color: 'red',
               title: 'Error!',
               description: error.toString()
-            }
+            },
+            ...prev,
+
           ])
       })
     }
@@ -132,7 +136,7 @@ export default function Auth() {
 
         <Separator className="w-full my-3" />
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 overflow-y-scroll h-[24rem]">
           {
             events.map((event: CustomEvent, index: number) => (
               <div
