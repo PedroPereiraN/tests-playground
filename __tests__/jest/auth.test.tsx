@@ -8,33 +8,31 @@ beforeEach(() => {
 
 describe('user authentication', () => {
   it('should send username and password correctly', async () => {
+    const user = userEvent.setup();
 
-const user = userEvent.setup();
+    const mockFetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ token: 'fake-token' }),
+      }),
+    );
 
-  const mockFetch = jest.fn(() =>
-    Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ token: 'fake-token' }),
-    }),
-  );
+    global.fetch = mockFetch as jest.Mock;
 
-  global.fetch = mockFetch as jest.Mock;
+    render(<Auth />);
 
-  render(<Auth />);
+    await user.type(screen.getByLabelText(/username/i), 'username');
+    await user.type(screen.getByLabelText(/password/i), 'password');
+    await user.click(screen.getByRole('button', { name: /Submit/i }));
 
-  await user.type(screen.getByLabelText(/username/i), 'username');
-  await user.type(screen.getByLabelText(/password/i), 'password');
-  await user.click(screen.getByRole('button', { name: /Submit/i }));
-
-  expect(mockFetch).toHaveBeenCalledWith('/api/auth', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: 'username',
-      password: 'password',
-    }),
-  });
-
+    expect(mockFetch).toHaveBeenCalledWith('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: 'username',
+        password: 'password',
+      }),
+    });
   });
 
   it('should show error when fields are empty', async () => {
