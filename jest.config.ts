@@ -12,6 +12,7 @@ const config: Config = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
+  testMatch: ['**/__tests__/**/*.test.(ts|tsx)'],
   transform: {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',

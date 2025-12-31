@@ -1,12 +1,21 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "module": "commonjs",
+    "jsx": "react-jsx",  // Mudança aqui: react-jsx em vez de react
     "esModuleInterop": true,
-    "isolatedModules": false,
-    "noEmit": true,
-    "moduleResolution": "node"
+    "types": ["jest", "@testing-library/jest-dom", "node"]
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "exclude": [
+    "node_modules",
+    "cypress",
+    "cypress.config.ts",
+    "**/*.cy.ts",
+    "**/*.cy.tsx"
+  ],
+  "include": [
+    "__tests__/**/*",
+    "src/**/*",
+    "app/**/*",
+    "components/**/*"
+  ]
 }
