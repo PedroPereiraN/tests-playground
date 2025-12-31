@@ -67,7 +67,7 @@ export default function Auth() {
           {
             color: 'blue',
             title: 'Success!',
-            description: `Token gerado com sucesso: "${responseMessage.token}"`,
+            description: `Token successfully generated: "${responseMessage.token}"`,
           },
 
           ...prev,
@@ -108,11 +108,11 @@ export default function Auth() {
 
   return (
     <main className="flex flex-col items-center justify-center gap-10 h-screen w-screen bg-slate-100">
-      <h1 className="font-bold text-3xl">Jwt Authentication</h1>
+      <h1 data-id="title" className="font-bold text-3xl mt-10">Jwt Authentication</h1>
 
       <form className="w-72 " onSubmit={handleSubmit(onSubmit, onFieldValidationError)}>
         <fieldset className="w-full">
-          <Label htmlFor="username" className="mb-3">
+          <Label htmlFor="username" className="mb-3" data-id="username-label">
             Username
           </Label>
           <input
@@ -121,16 +121,17 @@ export default function Auth() {
             placeholder="enter you username"
             {...register('username')}
             aria-invalid={!!errors.username}
+            data-id="username-input"
           />
           {errors.username && (
-            <span className="text-red-600 text-sm">
+            <span className="text-red-600 text-sm" data-id="username-error">
               {errors.username.message}
             </span>
           )}
         </fieldset>
 
         <fieldset className="w-full my-5">
-          <Label htmlFor="password" className="mb-3">
+          <Label htmlFor="password" className="mb-3" data-id="password-label">
             Password
           </Label>
           <input
@@ -140,15 +141,16 @@ export default function Auth() {
             type="password"
             {...register('password')}
             aria-invalid={!!errors.password}
+            data-id="password-input"
           />
           {errors.password && (
-            <span className="text-red-600 text-sm">
+            <span className="text-red-600 text-sm" data-id="password-error">
               {errors.password.message}
             </span>
           )}
         </fieldset>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" className="w-full" disabled={isSubmitting} data-id="form-btn">
           {isSubmitting ? 'Submitting...' : 'Submit'}
         </Button>
       </form>
@@ -162,7 +164,7 @@ export default function Auth() {
           {events.map((event: CustomEvent, index: number) => (
             <div
               className={cn(
-                'rounded-lg',
+                'rounded-lg event-content',
                 'p-4',
                 'border',
                 event.color == 'blue'

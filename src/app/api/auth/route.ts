@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   if (username.toLowerCase() !== correctValues.username) {
     return NextResponse.json(
-      { error: `User not found with username: ${username}.` },
+      { error: `User not found with username: "${username}".` },
       { status: 404 },
     );
   }
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   ).catch(() => false);
 
   if (!isValid) {
-    return NextResponse.json({ error: 'Wrong password' }, { status: 401 });
+    return NextResponse.json({ error: 'Wrong password.' }, { status: 401 });
   }
 
   return NextResponse.json({ token: 'super-secret-token' });
