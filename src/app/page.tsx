@@ -1,103 +1,158 @@
-import Image from 'next/image';
+'use client';
 
-export default function Home() {
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+export type CustomEvent = {
+  color: 'blue' | 'yellow' | 'red';
+  description: string;
+  title: string;
+};
+
+const schema = z.object({
+  username: z.string().min(1, {
+    message: 'Username is required',
+  }),
+  password: z.string().min(1, {
+    message: 'Password is required',
+  }),
+});
+
+export default function Auth() {
+  const [events, setEvents] = React.useState<CustomEvent[]>([]);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+  });
+
+  async function onSubmit(data: z.infer<typeof schema>) {
+    await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+      .then(async response => {
+        const responseMessage = await response.json();
+        if (!response.ok) {
+          setEvents(prev => [
+            {
+              color: 'red',
+              title: 'Error!',
+              description: responseMessage.error,
+            },
+            ...prev,
+          ]);
+
+          return;
+        }
+
+        setEvents(prev => [
+          {
+            color: 'blue',
+            title: 'Success!',
+            description: `Token gerado com sucesso: "${responseMessage.token}"`,
+          },
+
+          ...prev,
+        ]);
+
+        reset();
+      })
+      .catch(error => {
+        setEvents(prev => [
+          {
+            color: 'red',
+            title: 'Error!',
+            description: error.toString(),
+          },
+          ...prev,
+        ]);
+      });
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{' '}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="flex flex-col items-center justify-center gap-10 h-screen w-screen">
+      <h1 className="font-bold text-3xl">Jwt Authentication</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <form className="w-72 " onSubmit={handleSubmit(onSubmit)}>
+        <fieldset className="w-full">
+          <Label htmlFor="username" className="mb-3">
+            Username
+          </Label>
+          <input
+            className="w-full border border-gray-200 rounded-lg p-2 focus:outline-2 focus:outline-black"
+            id="username"
+            placeholder="enter you username"
+            {...register('username')}
+            aria-invalid={!!errors.username}
+          />
+          {errors.username && (
+            <span className="text-red-600 text-sm">
+              {errors.username.message}
+            </span>
+          )}
+        </fieldset>
+
+        <fieldset className="w-full my-5">
+          <Label htmlFor="password" className="mb-3">
+            Password
+          </Label>
+          <input
+            className="w-full border border-gray-200 rounded-lg p-2 focus:outline-2 focus:outline-black"
+            id="password"
+            placeholder="enter you password"
+            type="password"
+            {...register('password')}
+            aria-invalid={!!errors.password}
+          />
+          {errors.password && (
+            <span className="text-red-600 text-sm">
+              {errors.password.message}
+            </span>
+          )}
+        </fieldset>
+
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
+      </form>
+
+      <section className="w-2/5 overflow-y-scroll">
+        <h2 className="font-bold">Events</h2>
+
+        <Separator className="w-full my-3" />
+
+        <div className="flex flex-col gap-2 overflow-y-scroll min-h-[12rem]">
+          {events.map((event: CustomEvent, index: number) => (
+            <div
+              className={cn(
+                'rounded-lg',
+                'p-4',
+                'border',
+                event.color == 'blue'
+                  ? 'border-blue-600 bg-blue-600/20 text-blue-900'
+                  : event.color == 'yellow'
+                    ? 'border-yellow-600 bg-yellow-600/20 text-yellow-900'
+                    : 'border-red-600 bg-red-600/20 text-red-900',
+              )}
+              key={index}
+            >
+              <h3 className="font-bold">{event.title}</h3>
+              <p>{event.description}</p>
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+    </main>
   );
 }

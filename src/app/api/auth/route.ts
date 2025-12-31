@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const correctValues = {
   username: 'username',
-  password: 'password',
+  password: 'Password@123',
 };
 
 export async function POST(req: NextRequest) {
