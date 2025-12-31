@@ -21,6 +21,13 @@ const schema = z.object({
   }),
   password: z.string().min(1, {
     message: 'Password is required',
+  }).superRefine((value, ctx) => {
+    if (!value.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).+$/)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Password needs to contain uppercase and lowercase letters, numbers and special characters (@$!%*?&#)."
+      })
+    }
   }),
 });
 
@@ -80,11 +87,30 @@ export default function Auth() {
       });
   }
 
+  const onFieldValidationError = (errors: any) => {
+    const errorsWithCorrectType = errors as { password?: { message: string }; name?: { message: string } }
+
+    for (const err in errorsWithCorrectType) {
+      const errorMessage = errorsWithCorrectType[err as 'password' | 'name']?.message
+
+      if (errorMessage) {
+        setEvents(prev => [
+          {
+            color: 'red',
+            title: 'Error!',
+            description: errorMessage
+          },
+          ...prev,
+        ]);
+      }
+    }
+  }
+
   return (
-    <main className="flex flex-col items-center justify-center gap-10 h-screen w-screen">
+    <main className="flex flex-col items-center justify-center gap-10 h-screen w-screen bg-slate-100">
       <h1 className="font-bold text-3xl">Jwt Authentication</h1>
 
-      <form className="w-72 " onSubmit={handleSubmit(onSubmit)}>
+      <form className="w-72 " onSubmit={handleSubmit(onSubmit, onFieldValidationError)}>
         <fieldset className="w-full">
           <Label htmlFor="username" className="mb-3">
             Username
@@ -127,7 +153,7 @@ export default function Auth() {
         </Button>
       </form>
 
-      <section className="w-2/5 overflow-y-scroll">
+      <section className="w-2/5 overflow-y-scroll p-10">
         <h2 className="font-bold">Events</h2>
 
         <Separator className="w-full my-3" />
