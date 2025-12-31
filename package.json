@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test:jest": "jest",
-    "test:jest:watch": "jest --watchAll"
+    "test:jest:watch": "jest --watchAll",
+    "test:cypress:open": "cypress open"
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",
